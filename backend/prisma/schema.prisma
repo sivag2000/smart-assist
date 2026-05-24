@@ -1,0 +1,127 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               String            @id @default(uuid())
+  email            String            @unique
+  passwordHash     String
+  name             String?
+  createdAt        DateTime          @default(now())
+
+  tasks            Task[]
+  notes            Note[]
+  reminders        Reminder[]
+  chatMessages     ChatMessage[]
+  events           Event[]
+  conversations    Conversation[]
+  preference       Preference?
+  settings         UserSettings?
+  googleCredential GoogleCredential?
+}
+
+model Task {
+  id          String    @id @default(uuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  priority    String    @default("LOW")    // LOW, MEDIUM, HIGH
+  status      String    @default("TODO")   // TODO, IN_PROGRESS, DONE
+  dueDate     DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Note {
+  id        String    @id @default(uuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  content   String
+  tags      String    @default("[]")  // JSON array stored as string
+  isPinned  Boolean   @default(false)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+}
+
+model Reminder {
+  id             String    @id @default(uuid())
+  userId         String
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title          String
+  message        String?
+  remindAt       DateTime
+  isRepeat       Boolean   @default(false)
+  repeatInterval String?   // DAILY, WEEKLY, MONTHLY
+  isSent         Boolean   @default(false)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+}
+
+model ChatMessage {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role      String   // USER, ASSISTANT
+  content   String
+  createdAt DateTime @default(now())
+}
+
+model UserSettings {
+  id                   String   @id @default(uuid())
+  userId               String   @unique
+  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  theme                String   @default("DARK")
+  language             String   @default("en")
+  notificationsEnabled Boolean  @default(true)
+  timezone             String   @default("UTC")
+  updatedAt            DateTime @updatedAt
+}
+
+model Event {
+  id            String    @id @default(uuid())
+  userId        String
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title         String
+  startTime     DateTime
+  endTime       DateTime?
+  location      String?
+  description   String?
+  googleEventId String?   @unique
+  isSynced      Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+}
+
+model Conversation {
+  id             String   @id @default(uuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messageHistory String   // JSON payload stringified
+  createdAt      DateTime @default(now())
+}
+
+model Preference {
+  id       String @id @default(uuid())
+  userId   String @unique
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  settings String // JSON payload stringified
+}
+
+model GoogleCredential {
+  id            String   @id @default(uuid())
+  userId        String   @unique
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken   String
+  refreshToken  String?
+  expiryDate    BigInt?
+  grantedScopes String   @default("") // space-separated OAuth scopes
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
