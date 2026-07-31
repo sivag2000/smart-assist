@@ -48,7 +48,7 @@ export default function Layout() {
 
       // Show modal only when: Google is configured on server + user hasn't connected yet
       // + they haven't explicitly skipped this session
-      const skipped = sessionStorage.getItem('googleModalSkipped');
+      const skipped = localStorage.getItem('googleModalSkipped');
       if (serverConfigured && !connected && !skipped) {
         setShowPermissionsModal(true);
       }
@@ -161,7 +161,7 @@ export default function Layout() {
             setShowPermissionsModal(false);
           }}
           onSkip={() => {
-            sessionStorage.setItem('googleModalSkipped', 'true');
+            localStorage.setItem('googleModalSkipped', 'true');
             setShowPermissionsModal(false);
           }}
         />
